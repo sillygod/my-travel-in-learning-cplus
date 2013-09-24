@@ -5,14 +5,15 @@
 #define ALGORITHM_H
 
 #include "Node.h"
-#include <fstream>
+#include "main.h"
+
 class algorithm
 {
     public:
         algorithm(int totalword,char *SortMode);
         ~algorithm();
         void deletetheSameword(Node *data);
-        void WriteData(ofstream &output);
+        void WriteData(std::ofstream &output);
         void sort(Node* wordNode);
 
 

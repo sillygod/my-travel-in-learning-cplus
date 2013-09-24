@@ -2,11 +2,15 @@
 #define MAIN_H
 
 #include <iostream>
-#include "fileApp.h"
+#include <fstream>
 #include <windows.h>
 #include <map>
+#include <string>
+
+#include <ctime>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <cmath>
 
 #endif // MAIN_H

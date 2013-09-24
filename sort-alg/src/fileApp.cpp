@@ -1,7 +1,8 @@
 //fileApp.cpp
 
 #include "fileApp.h"
-#include <cstdio>
+using namespace std;
+
 fileApp::fileApp(char *InFileName, char*OutFileName,char *SortMode)
 :fileLength(0),totalword(0),mReadBuffer(NULL),mWordNode(NULL),mAlgorithm(NULL)
 {

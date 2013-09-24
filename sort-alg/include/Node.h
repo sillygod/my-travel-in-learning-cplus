@@ -2,11 +2,7 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-using namespace std;
+#include "main.h"
 //--------------------------------------------------
 //Name:Node
 //Desc:combine some data in this class for convenience

@@ -1,6 +1,8 @@
 //algorithm.cpp
 
 #include "algorithm.h"
+using namespace std;
+
 
 algorithm::algorithm(int totalword,char *SortMode)
 :mWordNumWithDF(0)
