@@ -1,4 +1,10 @@
 my-travel-in-learning-cplus
 ===========================
 
-the same as for another repository (my-travel-in-learning-python).
+think some project to implement for practice( the same as another repository -- my
+travel in learning python)
+
+## TODO
+* refactor the project sort-alg
+
+
