@@ -1,5 +1,9 @@
 //algorithm.h
 
+//yeap, do this one, first
+//
+//think a better way for providing this interface
+//I find there are a lot of refundent, maybe...
 
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
