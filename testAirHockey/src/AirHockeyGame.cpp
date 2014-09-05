@@ -1,8 +1,7 @@
 //AirHockeyGame.cpp
 
+#include "main.h"
 #include "AirHockeyGame.h"
-#include "resource.h"
-#include <cstdio>
 
 
 AirHockeyGame::AirHockeyGame(HINSTANCE hAppInst, HWND hMainWnd, Vec2 wndCenterPt)

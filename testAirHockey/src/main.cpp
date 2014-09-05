@@ -5,12 +5,9 @@
 //=========================================================
 // Includes
 //=========================================================
-#include <string>
-#include <cstdio>
-#include "resource.h"
+#include "main.h"
 #include "AirHockeyGame.h"
 #include "BackBuffer.h"
-#include <cassert>
 using namespace std;
 
 //=========================================================

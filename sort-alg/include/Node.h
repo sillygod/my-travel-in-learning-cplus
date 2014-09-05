@@ -10,28 +10,7 @@
 *  it should be able to be sorted by its member
 *  1. frequency
 *  2. string's alpha
-*  create two interator
 */
-
-template<typename T>
-class iter
-{
-public:
-    iter()
-    :mData(NULL)
-    {}
-
-    ~iter()
-    {
-
-    }
-
-
-
-private:
-    T *mData;
-};
-
 
 class Node
 {
@@ -39,7 +18,6 @@ class Node
 
         Node();
         ~Node();
-
 
 
         int mStringTimes;       //record the word's times

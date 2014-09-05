@@ -72,9 +72,14 @@ void fileApp::EndApp()
 
 void fileApp::cutSymbol()
 {
-    bool ignoreSymbol   =false; //without ' ' '\n'
+    bool startIgnore   =false; //without ' ' '\n'
     char *pignoreSymbol =NULL;
     char *index         =NULL;
+
+    bool ignorable = !( *(index)>64 && *(index)<91 ) &&
+                !( *(index)>96 && *(index)<123 ) &&
+                !(*(index)==' ' || *(index)=='\n');
+    // the ch which is not a-z A-Z \s \n will be cut
 
     index=mReadBuffer;
 
@@ -83,12 +88,11 @@ void fileApp::cutSymbol()
         if(*(index)==' ' || *(index)=='\n')
             totalword++;
 
-        if( !( *(index)>64 && *(index)<91 ) && !( *(index)>96 && *(index)<123 )
-           && !(*(index)==' ' || *(index)=='\n') )
+        if(ignorable)
         {
-            if(!ignoreSymbol)
+            if(!startIgnore)
             {
-                ignoreSymbol=true;
+                startIgnore=true;
                 pignoreSymbol=index;
                 if(*(index+1)=='\0')
                 {
@@ -99,22 +103,12 @@ void fileApp::cutSymbol()
         }
         else
         {
-            if(ignoreSymbol)
-            {
-
-                strcpy(pignoreSymbol,index);
-                index=pignoreSymbol;
-                ignoreSymbol=false;
-            }
+            strcpy(pignoreSymbol,index);
+            index=pignoreSymbol;
+            startIgnore=false;
         }
         index++;
     }
-
-    /*
-        index--;
-        if( !( *(index)>64 && *(index)<91 ) && !( *(index)>96 && *(index)<123 )&& !(*(index)==' ' || *(index)=='\n') )
-            *(index)='\0'; //the last punctuation
-*/
 }
 
 

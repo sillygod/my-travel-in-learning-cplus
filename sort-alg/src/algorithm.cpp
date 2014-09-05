@@ -145,10 +145,7 @@ void algorithm::bubbleSortTimesBase()
         {
             if(mptr[j]->mStringTimes > mptr[j-1]->mStringTimes)
             {
-                temp     =mptr[j];
-                mptr[j]  =mptr[j-1];
-                mptr[j-1]=temp;
-
+                swap(mptr[j], mptr[j-1]);
             }
         }
 
@@ -162,9 +159,7 @@ void algorithm::bubbleSortAlphaBase(Node *data)
         {
             if(strcmp( data[j].mStringHead, data[j-1].mStringHead)<0) // data[j-1] alphabet large than data[j]
             {
-                temp       =*(data+j);
-                *(data+j)  =*(data+j-1);
-                *(data+j-1)=temp;
+                swap(data[j], data[j-1]);
             }
         }
 }
@@ -469,9 +464,7 @@ void algorithm::heapSortTimesBase(const int n)
         adjustHeapTimesBase(mptr,i,n);
     for(int i=n;i>=0;i--)
     {
-        temp=mptr[0];
-        mptr[0]=mptr[i];
-        mptr[i]=temp;
+        swap(mptr[0], mptr[i]);
         adjustHeapTimesBase(mptr,0,i-1);
     }
 }
