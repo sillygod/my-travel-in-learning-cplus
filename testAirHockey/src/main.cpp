@@ -1,27 +1,28 @@
 // giAirHockey.cpp
-// By Frank Luna
+// By sillygod
 // August 24, 2004.
-//GameWin 和 baseWin 沒用到包裝沒成功....
+//
 //=========================================================
 // Includes
 //=========================================================
 #include "main.h"
 #include "AirHockeyGame.h"
 #include "BackBuffer.h"
+#include "CTimer.h"
+#include "Win.h"
 using namespace std;
 
 //=========================================================
 // Globals
 //=========================================================
 HWND        ghMainWnd  = 0;
-HINSTANCE   ghAppInst  = 0;
-HMENU       ghMainMenu = 0;
 HDC         ghSpriteDC = 0;
 
 BackBuffer*    gBackBuffer = 0;
 AirHockeyGame* gAirHockey  = 0;
 
-string gWndCaption = "Game Institute Air Hockey";
+string gWndCaption = "paddle game";
+void DrawFramesPerSecond(float deltaTime);
 
 // Client dimensions exactly equal dimensions of
 // background bitmap.  This is found by inspecting
@@ -41,225 +42,105 @@ const POINT gClientCenter =
 const int gWindowWidth  = gClientWidth  + 6;
 const int gWindowHeight = gClientHeight + 52;
 
-//=========================================================
-// Function Prototypes
-//=========================================================
 
-bool InitMainWindow();
-int  Run();
-void DrawFramesPerSecond(float deltaTime);
 
-LRESULT CALLBACK
-WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-BOOL CALLBACK
-AboutBoxProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
-
-//=========================================================
-// Name: WinMain
-// Desc: Program execution starts here.
-//=========================================================
-
-int WINAPI
-WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-		PSTR cmdLine, int showCmd)
+class gameEngine : public Wnd
 {
-	ghAppInst = hInstance;
+public:
+    gameEngine(){};
 
-	// Create the main window.
-	if( !InitMainWindow() )
-	{
-		MessageBox(0, "Window Creation Failed.", "Error", MB_OK);
-		return 0;
-	}
+    ~gameEngine(){
+        this->shutDown();
+    };
 
-	// Enter the message loop.
-	return Run();
+    bool init();
+
+    WPARAM start();
+
+    WPARAM Run();
+
+    LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+    void shutDown();
+
+
+private:
+    CTimer *mTimer;
+
+
+};
+
+bool gameEngine::init(){
+// initial the window, register, create, show
+
+    this->setMenu(MAKEINTRESOURCE(IDR_MENU1));
+    //set menu before register window
+    if(this->Register() && this->Create(gWindowWidth, gWindowHeight)){
+        return true;
+    }
+    else{
+        return false;
+    }
+
 }
 
-//=========================================================
-// Name: InitMainWindow
-// Desc: Creates the main window upon which we will
-//       draw the game graphics onto.
-//=========================================================
-bool InitMainWindow()
-{
-	WNDCLASS wc;
-	wc.style         = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc   = WndProc;
-	wc.cbClsExtra    = 0;
-	wc.cbWndExtra    = 0;
-	wc.hInstance     = ghAppInst;
-	wc.hIcon         = ::LoadIcon(0, IDI_APPLICATION);
-	wc.hCursor       = ::LoadCursor(0, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)::GetStockObject(NULL_BRUSH);
-	wc.lpszMenuName  = 0;
-	wc.lpszClassName = "MyWndClassName";
 
-	RegisterClass( &wc );
-
-	// WS_OVERLAPPED | WS_SYSMENU: Window cannot be resized
-	// and does not have a min/max button.
-	ghMainMenu = LoadMenu(ghAppInst, MAKEINTRESOURCE(IDR_MENU1));
-	ghMainWnd = ::CreateWindow("MyWndClassName",
-		gWndCaption.c_str(), WS_OVERLAPPED | WS_SYSMENU,
-		200, 200, gWindowWidth, gWindowHeight, 0,
-		ghMainMenu, ghAppInst, 0);
-
-	if(ghMainWnd == 0)
-	{
-		::MessageBox(0, "CreateWindow - Failed", 0, 0);
-		return 0;
-	}
-
-	ShowWindow(ghMainWnd, SW_NORMAL);
-	UpdateWindow(ghMainWnd);
-
-	return true;
+void gameEngine::shutDown(){
+    delete mTimer;
 }
 
-//=========================================================
-// Name: Run
-// Desc: Encapsulates the message loop.
-//=========================================================
-int Run()
-{
-	MSG msg;
+
+WPARAM gameEngine::start(){
+    mTimer = new CTimer();
+    return this->Run();
+}
+
+
+WPARAM gameEngine::Run(){
+
+    MSG msg; //must initialize first
+
 	ZeroMemory(&msg, sizeof(MSG));
 
-	// Get the performance timer frequency.
-	__int64 cntsPerSec = 0;
-	bool perfExists = QueryPerformanceFrequency((LARGE_INTEGER*)&cntsPerSec)!=0;
-	if( !perfExists )
+	while(msg.message!=WM_QUIT)
 	{
-		MessageBox(0, "Performance timer does not exist!", 0, 0);
-		return 0;
-	}
 
-	double timeScale = 1.0 / (double)cntsPerSec;
-	// Get the current time.
-	__int64 lastTime = 0;
-	QueryPerformanceCounter((LARGE_INTEGER*)&lastTime);
-
-	double timeElapsed = 0.0f;
-
-	while(msg.message != WM_QUIT)
-	{
-		// IF there is a Windows message then process it.
-		if(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE))
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			TranslateMessage( &msg );
+			DispatchMessage ( &msg );
 		}
-		// ELSE, do game stuff.
 		else
-        {
-			// Get the time now.
+		{
+			// tick fps to 60
+			mTimer->Tick(60.0);
+			gAirHockey->update(mTimer->GetTimeElapsed());
 
-			__int64 currTime = 0;
-			QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
+            // Draw every frame.
+            gAirHockey->draw(gBackBuffer->getDC(), ghSpriteDC);
 
-			// Compute the differences in time from the last
-			// time we checked.  Since the last time we checked
-			// was the previous loop iteration, this difference
-			// gives us the time between loop iterations...
-			// or, I.e., the time between frames.
-			double deltaTime = (double)(currTime - lastTime) * timeScale;
+            DrawFramesPerSecond(mTimer->GetTimeElapsed());
 
-			timeElapsed += deltaTime;
+            // Now present the backbuffer contents to the main
+            // window client area.
+            gBackBuffer->present();
 
-			// Only update once every 1/100 seconds.
-			if( timeElapsed >= 0.01 )
-			{
-				// Update the game and draw everything.
-				gAirHockey->update((float)timeElapsed);
-
-				// Draw every frame.
-				gAirHockey->draw(gBackBuffer->getDC(), ghSpriteDC);
-
-				DrawFramesPerSecond((float)timeElapsed);
-
-				// Now present the backbuffer contents to the main
-				// window client area.
-				gBackBuffer->present();
-
-				timeElapsed = 0.0;
-			}
-
-			// We are at the end of the loop iteration, so
-			// prepare for the next loop iteration by making
-			// the "current time" the "last time."
-			lastTime = currTime;
-        }
-    }
-	// Return exit code back to operating system.
-	return (int)msg.wParam;
-}
-
-//=========================================================
-// Name: DrawFramesPerSecond
-// Desc: This function is called every frame and updates
-//       the frame per second display in the main window
-//       caption.
-//=========================================================
-void DrawFramesPerSecond(float deltaTime)
-{
-	// Make static so the variables persist even after
-	// the function returns.
-	static int   frameCnt    = 0;
-	static float timeElapsed = 0.0f;
-	static char  buffer[256];
-
-	// Function called implies a new frame, so increment
-	// the frame count.
-	++frameCnt;
-
-	// Also increment how much time has passed since the
-	// last frame.
-	timeElapsed += deltaTime;
-
-	// Has one second passed?
-	if( timeElapsed >= 1.0f )
-	{
-		// Yes, so compute the frames per second.
-		// FPS = frameCnt / timeElapsed, but since we
-		// compute only when timeElapsed = 1.0, we can
-		// reduce to:
-		// FPS = frameCnt / 1.0 = frameCnt.
-
-		sprintf(buffer, "--Frames Per Second = %d", frameCnt);
-
-		// Add the frames per second string to the main
-		// window caption--that is, we'll display the frames
-		// per second in the window's caption bar.
-		string newCaption = gWndCaption + buffer;
-
-		// Now set the new caption to the main window.
-		SetWindowText(ghMainWnd, newCaption.c_str());
-
-		// Reset the counters to prepare for the next time
-		// we compute the frames per second.
-		frameCnt    = 0;
-		timeElapsed = 0.0f;
+		}
 	}
+
+	return msg.wParam;
 }
 
-//=========================================================
-// Name: WndProc
-// Desc: The main window procedure.
-//=========================================================
+LRESULT CALLBACK gameEngine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
-LRESULT CALLBACK
-WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	switch( msg )
+    switch( uMsg )
 	{
 	// Create application resources.
 	case WM_CREATE:
 
 		// Create the hockey game.
 		gAirHockey = new AirHockeyGame(
-			ghAppInst, hWnd, gClientCenter);
+			this->gethInstance(), hWnd, gClientCenter);
 
 		// Create system memory DCs
 		ghSpriteDC = CreateCompatibleDC(0);
@@ -304,5 +185,73 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	// Forward any other messages we didn't handle to the
 	// default window procedure.
-	return DefWindowProc(hWnd, msg, wParam, lParam);
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+
+//=========================================================
+// Name: WinMain
+// Desc: Program execution starts here.
+//=========================================================
+
+int WINAPI
+WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+		PSTR cmdLine, int showCmd)
+{
+    gameEngine *engine = new gameEngine();
+
+	if( engine->init()){
+        ghMainWnd = engine->getHwnd();
+	}
+
+    return engine->start();
+}
+
+
+
+//=========================================================
+// Name: DrawFramesPerSecond
+// Desc: This function is called every frame and updates
+//       the frame per second display in the main window
+//       caption.
+//=========================================================
+void DrawFramesPerSecond(float deltaTime)
+{
+	// Make static so the variables persist even after
+	// the function returns.
+	static int   frameCnt    = 0;
+	static float timeElapsed = 0.0f;
+	static char  buffer[256];
+
+	// Function called implies a new frame, so increment
+	// the frame count.
+	++frameCnt;
+
+	// Also increment how much time has passed since the
+	// last frame.
+	timeElapsed += deltaTime;
+
+	// Has one second passed?
+	if( timeElapsed >= 1.0f )
+	{
+		// Yes, so compute the frames per second.
+		// FPS = frameCnt / timeElapsed, but since we
+		// compute only when timeElapsed = 1.0, we can
+		// reduce to:
+		// FPS = frameCnt / 1.0 = frameCnt.
+
+		sprintf(buffer, "--Frames Per Second = %d", frameCnt);
+
+		// Add the frames per second string to the main
+		// window caption--that is, we'll display the frames
+		// per second in the window's caption bar.
+		string newCaption = gWndCaption + buffer;
+
+		// Now set the new caption to the main window.
+		SetWindowText(ghMainWnd, newCaption.c_str());
+		// Reset the counters to prepare for the next time
+		// we compute the frames per second.
+		frameCnt    = 0;
+		timeElapsed = 0.0f;
+	}
 }

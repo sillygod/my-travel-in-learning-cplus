@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cassert>
 #include <windows.h>
+#include <iostream>
 #include <map>
 #include <ctime>
 #include "resource.h"

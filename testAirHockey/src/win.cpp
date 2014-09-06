@@ -3,6 +3,7 @@
 #include "win.h"
 
 Wnd::Wnd()
+: mHwnd(NULL), mHDC(NULL), mMenu(NULL)
 {
 	mClassName[BUTTON]="BUTTON";
 	mClassName[EDIT]="EDIT";
@@ -21,9 +22,14 @@ Wnd::~Wnd()
 		DestroyWindow(mHwnd);
 }
 
-char* Wnd::getSystemClassName(SystemClass type)const
+const char* Wnd::getSystemClassName(SystemClass type)const
 {
 	return mClassName.find(type)->second;
+}
+
+
+void Wnd::setMenu(LPCTSTR menu){
+    mMenu = ::LoadMenu(mWc.hInstance, menu);
 }
 
 
@@ -57,9 +63,10 @@ bool Wnd::Create(int width/*640*/, int height/*320*/)
 		width,
 		height,
 		NULL,
-		NULL,
+		mMenu,
 		mWc.hInstance,
 		this); // store this pointer , it's very important
+
 
 	if(!mHwnd) return false;
 
@@ -85,7 +92,7 @@ WPARAM Wnd::Run()
 		}
 		else
 		{
-			// 
+			//
 		}
 	}
 
